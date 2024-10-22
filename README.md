@@ -1,2 +1,2 @@
-# estadia_project
-Sistema de control de direcciones IP
+# Estadia Project
+Sistema de control de direcciones IP  SSPC
