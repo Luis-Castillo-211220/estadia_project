@@ -1,12 +1,23 @@
 const { History } = require("../../../domain/entity/history");
 const HistoryInterface = require("../../../domain/port/historyInterface")
 const Sequelize = require('sequelize')
-
+const { literal } = require('sequelize')
 class HistoryRepository extends HistoryInterface{
 
     async getAllHistory(){
         try{
-            const allHistory = await History.findAll();
+            const allHistory = await History.findAll({
+                attributes: [
+                    'history_id',
+                    'user_name',
+                    'date',
+                    [literal('CONVERT (VARCHAR(8), [time], 108)'), 'time'],
+                    'action',
+                    'description',
+                    'createdAt',
+                    'updatedAt',
+                ]
+            });
             return allHistory;
         } catch (error) {
             throw new Error("Error getting all history: " + error.message);
@@ -15,8 +26,17 @@ class HistoryRepository extends HistoryInterface{
 
     async getHistoryByName(user_name){
         try{
-            const historyByUserName = await History.findAll({ where: { user_name } });
-            return historyByUserName;
+            const x = await History.findAll( { attributes: ['history_id',
+                'user_name',
+                'date',
+                [literal('CONVERT (VARCHAR(8), [time], 108)'), 'time'],
+                'action',
+                'description',
+                'createdAt',
+                'updatedAt'], where: { user_name}});
+
+            // return historyByUserName;
+            return x;
         } catch (error) {
             throw new Error("Error getting history by user name: " + error.message);
         }
@@ -35,7 +55,14 @@ class HistoryRepository extends HistoryInterface{
             }
 
             if(startDate && !endDate){
-                const histories = await History.findAll({ where: { date: startDate }});
+                const histories = await History.findAll({attributes: [                'history_id',
+                    'user_name',
+                    'date',
+                    [literal('CONVERT (VARCHAR(8), [time], 108)'), 'time'],
+                    'action',
+                    'description',
+                    'createdAt',
+                    'updatedAt',], where: { date: startDate }});
                 if(histories){
                     return { status: "success", data: histories };
                 }else{
@@ -44,7 +71,14 @@ class HistoryRepository extends HistoryInterface{
             }
 
             if(startDate && endDate){
-                const historyByDate = await History.findAll({ where: { date: { [Op.between]: [startDate, endDate] } } });
+                const historyByDate = await History.findAll({attributes: [                'history_id',
+                    'user_name',
+                    'date',
+                    [literal('CONVERT (VARCHAR(8), [time], 108)'), 'time'],
+                    'action',
+                    'description',
+                    'createdAt',
+                    'updatedAt',],  where: { date: { [Op.between]: [startDate, endDate] } } });
                 if(!historyByDate){
                     throw new Error('No se encontraron registros');
                 }
