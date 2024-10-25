@@ -9,7 +9,8 @@ class CreateDeviceController {
     async run(req = Request, res = Response) {
         try {
             const {ip_address, mac_address, owner_name, ubication, internet_level, proxy, device_type, brand, model, serial, patrimony, observations, groups} = req.body
-            const createDevice = await this.createDeviceUseCase.run(ip_address, mac_address, owner_name, ubication, internet_level, proxy, device_type, brand, model, serial, patrimony, observations, groups)
+            const { user_name } = req.params
+            const createDevice = await this.createDeviceUseCase.run(ip_address, mac_address, owner_name, ubication, internet_level, proxy, device_type, brand, model, serial, patrimony, observations, groups, user_name)
             
             if (createDevice) {
                 res.status(201).json(createDevice)

@@ -10,7 +10,7 @@ const { createDeviceController,
 
 const deviceRouter = express.Router()
 
-deviceRouter.post('/register', createDeviceController.run.bind(createDeviceController)); //create
+deviceRouter.post('/register/:user_name', createDeviceController.run.bind(createDeviceController)); //create
 deviceRouter.get('/', getAllDevicesController.run.bind(getAllDevicesController)); // Get All
 deviceRouter.get('/:ip_address', getDeviceByIPAddressController.run.bind(getDeviceByIPAddressController)); //Get By IP
 deviceRouter.delete('/destroy/:ip_address', deleteDeviceByIPAddressController.run.bind(deleteDeviceByIPAddressController)); //Delete By IP

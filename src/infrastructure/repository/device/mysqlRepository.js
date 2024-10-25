@@ -6,7 +6,7 @@ const Sequelize = require('sequelize')
 class DeviceRepository extends DeviceInterface {
 
     async createDevice(ip_address, mac_address, owner_name, ubication, internet_level, 
-        proxy, device_type, brand, model, serial, patrimony, observations, groups){
+        proxy, device_type, brand, model, serial, patrimony, observations, groups, user_name){
         try{
             const newDevice = await Device.create({
                 ip_address: ip_address,
@@ -33,13 +33,19 @@ class DeviceRepository extends DeviceInterface {
 
             //CREACIÓN DEL REGISTRO EN EL HISTORIAL DE MOVIMIENTOS
             const date = new Date()
+            const time = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
             const newHistory = await History.create({
-                user_name: 'name_test',
+                user_name: user_name,
                 date: date.toISOString().split('T')[0],
-                time: date.toTimeString().split(' ')[0],
+                time: time,
+                // time: date.toTimeString().split(' ')[0],
                 action: 'CREATE',
                 description: `Dispositivo creado: ${newDevice.ip_address}`,
             })
+
+            if(!newHistory){
+                throw new Error('Error al crear el registro en el historial, en repositorio')
+            }
             return newDevice
         }catch(error){
             throw new Error(error.message)
@@ -86,10 +92,11 @@ class DeviceRepository extends DeviceInterface {
             }
 
             const date = new Date()
+            const time = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
             const newHistory = await History.create({
                 user_name: 'name_test',
                 date: date.toISOString().split('T')[0],
-                time: date.toTimeString().split(' ')[0],
+                time: time,
                 action: 'DELETE',
                 description: `Dispositivo eliminado: ${ip_address}`,
             })
@@ -152,12 +159,13 @@ class DeviceRepository extends DeviceInterface {
 
             //CREACION DEL REGISTRO EN EL HISTORIAL DE MOVIMIENTOS
             const date = new Date()
+            const time = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
             await History.create({
                 user_name: 'name_test',
                 date: date.toISOString().split('T')[0],
-                time: date.toTimeString().split(' ')[0],
+                time: time,
                 action: 'UPDATE',
-                description: `Dispositivo actualizado: ${device.ip_address}`,
+                description: `Dispositivo actualizado: ${device.ip_address} \n Campos actualizados: ${updatedFields}`,
             })
             
             return {status: 'success', message: 'Dispositivo actualizado correctamente'}

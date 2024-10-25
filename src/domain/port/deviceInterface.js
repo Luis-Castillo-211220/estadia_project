@@ -15,10 +15,11 @@ class DeviceInterface{
      * @param {String} patrimony
      * @param {String} observations
      * @param {Array<String>|null} groups
+     * @param {String} user_name
      * @returns {Promise<String|null>}
      */
     async createDevice(ip_address, mac_address, owner_name, ubication, internet_level, proxy, device_type, brand, model,
-        serial, patrimony, observations, groups){
+        serial, patrimony, observations, groups, user_name){
         throw new Error("create method not implemented in Device interface")
     }
 
