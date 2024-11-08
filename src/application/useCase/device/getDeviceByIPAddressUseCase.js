@@ -18,7 +18,7 @@ class GetDeviceByIPAddressUseCase{
         }catch(err){
             console.error('Error al obtener el dispositivo por IP', err)
             throw new Error('Error al obtener el dispositivo in use case',)
-            return null
+            // return null
         }
     }
 }

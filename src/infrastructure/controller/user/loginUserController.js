@@ -10,15 +10,14 @@ class LoginUserController {
             const { email, password } = req.body
             const user = await this.loginUserUseCase.run(email, password)
 
-            if(user){
+            if(user.status === 'success'){
                 res.status(200).json({
-                    status: 'success',
-                    user_id: user.id,
-                    email: user.email
+                    user
                 })
             } else {
                 res.status(401).json({
-                    error: "Credenciales incorrectas"
+                    status: user.status,
+                    message: user.message
                 })
             }
         }catch(err){

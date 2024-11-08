@@ -1,6 +1,8 @@
 const { DataTypes } = require('sequelize')
 // const { sequelize } = require('../../database/mysql')
 const { sequelize } = require('../../database/sqlserver')
+const { User } = require("./user")
+
 
 const History = sequelize.define('History', {
     history_id: {
@@ -9,8 +11,12 @@ const History = sequelize.define('History', {
         autoIncrement: true,
         unique: true
     },
-    user_name:{
-        type: DataTypes.STRING,
+    user_id:{
+        type: DataTypes.INTEGER,
+        references: {
+            model: User,
+            key: 'user_id'
+        },
         allowNull: false
     },
     date: {
@@ -27,6 +33,6 @@ const History = sequelize.define('History', {
         type: DataTypes.TEXT,
         allowNull: false
     }
-})
+});
 
 module.exports = { History }

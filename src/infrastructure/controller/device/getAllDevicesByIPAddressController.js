@@ -9,13 +9,13 @@ class GetAllDevicesByIPAddressController {
         try{
             const ip_address = req.params.ip_address
             const devices = await this.getAllDevicesByIPAddressUseCase.run(ip_address)
-            if(devices){
+            if(devices.status === 'success'){
                 res.status(200).json({
                     devices
                 });
             }else{
                 res.status(400).json({
-                    error: "Error al obtener los dispositivos"
+                    devices
                 });
             }
         }catch(e){

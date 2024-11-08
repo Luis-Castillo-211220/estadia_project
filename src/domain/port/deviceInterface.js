@@ -2,24 +2,22 @@ const { Device } = require('../entity/device')
 
 class DeviceInterface{
     /**
-     * @param {String} ip_address
-     * @param {String} mac_address
+     * @param {String} ip_address_id //ip_address 
      * @param {String} owner_name
-     * @param {String} ubication
-     * @param {String} internet_level
-     * @param {String} proxy
      * @param {String} device_type
      * @param {String} brand
      * @param {String} model
      * @param {String} serial
      * @param {String} patrimony
+     * @param {Number} user_id
+     * @param {String} mac_address
+     * @param {String} ubication
+     * @param {String} internet_level
+     * @param {String} proxy
      * @param {String} observations
-     * @param {Array<String>|null} groups
-     * @param {String} user_name
      * @returns {Promise<String|null>}
      */
-    async createDevice(ip_address, mac_address, owner_name, ubication, internet_level, proxy, device_type, brand, model,
-        serial, patrimony, observations, groups, user_name){
+    async createDevice(ip_address_id, owner_name, device_type, brand, model, serial, patrimony, user_id, mac_address, ubication, internet_level, proxy, observations){
         throw new Error("create method not implemented in Device interface")
     }
 
@@ -66,6 +64,15 @@ class DeviceInterface{
      */
     async updateDeviceById(device_id, ip_address, owner_name, internet_level, groups) {
         throw new Error("update method not implemented in Device interface")
+    }
+
+    /**
+     * 
+     * @param {String} owner_name
+     * @returns {Promise<Array<Device|String>|String|null>} 
+     */
+    async getDevicesByName(owner_name) {
+        throw new Error("getDevicesByName method not implemented in Device interface")
     }
 }
 

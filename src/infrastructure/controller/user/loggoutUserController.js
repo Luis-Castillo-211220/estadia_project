@@ -11,11 +11,13 @@ class LoggoutUserController {
             const result = await this.logoutUserUseCase.run(email)
             if(result){
                 res.status(200).json({
+                    status: 'success',
                     message: "User logged out successfully"
                 })
             }else{
                 res.status(404).json({
-                    error: "User not found"
+                    status: "error",
+                    message: "User not found"
                 })
             }
         }catch(err){

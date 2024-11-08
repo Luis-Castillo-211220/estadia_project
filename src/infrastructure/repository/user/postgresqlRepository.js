@@ -8,8 +8,7 @@ class UserRepository extends UserInterface {
         try{
 
             const result = await User.findOne({ where: { email: email } })
-
-            if(!result) return {status: 'error', message: 'User already exists'}
+            if(result) return {status: 'error', message: 'User already exists'}
 
             const newUser = await User.create({
                 name: name,
@@ -30,11 +29,16 @@ class UserRepository extends UserInterface {
         try{
             const user = await User.findOne({ where: { email: email } })
             if (!user){
-                throw new Error("User not found")
+                return {status: 'error', message: 'User not found'}
             }
+
+            if(user.is_active === true){
+                return {status: 'error', message: 'User already active'}
+            }
+
             const match = await bcrypt.compare(password, user.password)
             if (!match){
-                throw new Error("Incorrect password")
+                return {status: 'error', message: 'Credentials do not match'}
             }
 
             const updateUser = await user.update({
@@ -47,8 +51,7 @@ class UserRepository extends UserInterface {
             })
 
             await updateUser.save();
-            return updateUser;
-            // return user;
+            return {status: 'success', message: 'Login exitoso', id: updateUser.user_id, email: updateUser.email};
         }catch(err){
             throw new Error("Error logging in user: " + err.message);
         }

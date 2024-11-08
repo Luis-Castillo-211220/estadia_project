@@ -8,11 +8,10 @@ const User = sequelize.define('Users', {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
-        unique: true
     },
     name: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
     },
     email: {
         type: DataTypes.STRING,
@@ -42,7 +41,8 @@ const User = sequelize.define('Users', {
     },
     roles: {
         type: DataTypes.STRING,
-        defaultValue: 'user'
+        defaultValue: 'user',
+        values: ['user', 'admin', 'advanced']
     }
 },{
     freezeTableName: true,

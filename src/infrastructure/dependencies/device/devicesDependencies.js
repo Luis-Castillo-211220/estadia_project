@@ -12,6 +12,8 @@ const { GetAllDevicesByIPAddressUseCase } = require("../../../application/useCas
 const { GetAllDevicesByIPAddressController } = require("../../controller/device/getAllDevicesByIPAddressController")
 const { UpdateDeviceByIdUseCase } = require("../../../application/useCase/device/updateDeviceByIdUseCase")
 const { UpdateDeviceByIdController } = require("../../controller/device/updateDeviceByIdController")
+const { GetDevicesByNameUseCase } = require("../../../application/useCase/device/getDevicesByNameUseCase")
+const { GetDevicesByNameController } = require("../../controller/device/getDevicesByNameController")
 
 const deviceRepository = new DeviceRepository()
 
@@ -33,6 +35,9 @@ const getAllDevicesByIPAddressController = new GetAllDevicesByIPAddressControlle
 const updateDeviceByIdUseCase = new UpdateDeviceByIdUseCase(deviceRepository)
 const updateDeviceByIdController = new UpdateDeviceByIdController(updateDeviceByIdUseCase)
 
+const getDevicesByNameUseCase = new GetDevicesByNameUseCase(deviceRepository)
+const getDevicesByNameController = new GetDevicesByNameController(getDevicesByNameUseCase)
+
 module.exports = {
     createDeviceController,  // Exportamos el controlador para ser utilizado en el router
     getAllDevicesController,
@@ -40,4 +45,5 @@ module.exports = {
     deleteDeviceByIPAddressController,
     getAllDevicesByIPAddressController,
     updateDeviceByIdController,
+    getDevicesByNameController
 }

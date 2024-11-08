@@ -7,6 +7,7 @@ class GetAllDevicesByIPAddressUseCase{
 
     /**
      * @param {String} ip_address 
+     * @returns {Promise<Array<Device>|Device|null>}
      */
     async run(ip_address){
         try{
