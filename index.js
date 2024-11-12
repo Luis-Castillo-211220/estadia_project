@@ -7,6 +7,8 @@ const { deviceRouter } = require("./src/infrastructure/routes/deviceRouter")
 const { historyRouter } = require('./src/infrastructure/routes/historyRouter');
 const { userRouter } = require('./src/infrastructure/routes/userRoutes')
 const { ipAdressesRouter } = require('./src/infrastructure/routes/ipAdressesRouter')
+const {  internetLevelRouter } = require('./src/infrastructure/routes/internetLevelRoutes')
+const { initializeConnection } = require("./src/infrastructure/services/sshConector/sshClient")
 
 const app = express();
 const PORT = 3005;
@@ -23,10 +25,19 @@ app.use('/api/v1/device/', deviceRouter)
 app.use('/api/v2/history/', historyRouter)
 app.use('/api/v3/user/', userRouter)
 app.use('/api/v4/ipAdresses/', ipAdressesRouter)
+app.use('/api/v5/internetLevel/', internetLevelRouter)
 
-connectDB().then(() => {
+connectDB().then(async () => {
+    try{
+        await initializeConnection();
+        console.log('SSH connection initialized successfully');
+    }catch(err){
+        console.error('Failed to initializate SSH connection', err);
+        // process.exit(1);
+    }
+
     app.listen(PORT, () => {
-        console.log(`Server listening on ${PORT}`);
+        console.log(`Server listening on ${PORT}`); 
     });
 }).catch(error => {
     console.error('Failed to start the server: ', error);

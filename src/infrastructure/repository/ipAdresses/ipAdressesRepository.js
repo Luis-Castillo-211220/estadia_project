@@ -50,7 +50,7 @@ class IpAdressesRepository extends IpAdressesInterface{
             }
 
             if(ipAddress.available === false){
-                return {status: 'error', message: 'Ip address is associated with a device'}
+                return {status: 'error', message: 'Ip address is associated with a device. \n Please remove device first.   '}
             }
 
             await ipAddress.destroy({ where: { ip_address: ip_address}});

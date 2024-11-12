@@ -7,14 +7,29 @@ const InternetLevel = sequelize.define('InternetLevel', {
         primaryKey: true,
         autoIncrement: true
     },
-    internet_level_name: {
-        type: DataTypes.STRING
-    },
-    privileges:{
+    name: {
         type: DataTypes.STRING,
+        allowNull: false,
+        unique: true
     },
-    internet_level_description: {
-        type: DataTypes.STRING
+    description:{
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
+    allowed_services: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    allowed_timeframe: {
+        type: DataTypes.STRING,
+        defaultValue: 'always'
+    },
+    bandwidth_limit: {
+        type: DataTypes.INTEGER
+    },
+    priority:{
+        type: DataTypes.INTEGER,
+        defaultValue: 1
     }
  
 })
