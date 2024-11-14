@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize')
 const { sequelize } = require('../../database/sqlserver')
+const { InternetLevel } = require('../entity/internetLevel')
 
 const IpAdresses = sequelize.define('IpAdresses', {
     ip_address_id: {
@@ -16,6 +17,12 @@ const IpAdresses = sequelize.define('IpAdresses', {
             isIPv4: true
         }
     },
+    mask: {
+        type: DataTypes.STRING,
+        validate: {
+            is: "/^(128|192|224|240|248|252|254|255)\.0\.0\.0$|^255\.(0|128|192|224|240|248|252|254|255)\.0\.0$|^255\.255\.(0|128|192|224|240|248|252|254|255)\.0$|^255\.255\.255\.(0|128|192|224|240|248|252|254|255)$/"
+        }
+    },
     mac_address: {
         type: DataTypes.STRING,
         allowNull: true,
@@ -28,9 +35,12 @@ const IpAdresses = sequelize.define('IpAdresses', {
         type: DataTypes.STRING,
         allowNull: true
     },
-    internet_level:{
-        type: DataTypes.STRING,
-        allowNull: true
+    internet_level:{ //id llave foranea
+        type: DataTypes.INTEGER,
+        references: {
+            model: InternetLevel,
+            key: 'internet_level_id'
+        }
     },
     proxy: {
         type: DataTypes.STRING,

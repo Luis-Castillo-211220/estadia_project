@@ -1,5 +1,5 @@
 const { Client } = require('ssh2');
-const sshConfig = require('../config/sshConfig'); // Archivo de configuración SSH
+const sshConfig = require('./sshConfig'); // Archivo de configuración SSH
 
 let sshConnection = null; // Variable para almacenar la conexión SSH
 let isConnecting = false; // Evitar múltiples intentos de reconexión simultáneos

@@ -10,13 +10,13 @@ class CreateIpAddressController {
             const { ip_address } = req.body
             const ipAddress = await this.createIpAddressUseCase.run(ip_address)
 
-            if(ipAddress){
+            if(ipAddress.status === 'success'){
                 res.status(201).json({
                     ipAddress
                 })
             } else {
                 res.status(400).json({
-                    error: "Error al crear la dirección IP"
+                    ipAddress
                 })
             }
         }catch (e) {

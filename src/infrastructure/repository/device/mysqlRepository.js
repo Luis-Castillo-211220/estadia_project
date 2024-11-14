@@ -4,6 +4,8 @@ const DeviceInterface  = require("../../../domain/port/deviceInterface")
 const Sequelize = require('sequelize')
 const { User } = require("../../../domain/entity/user")
 const { IpAdresses} = require("../../../domain/entity/ipAddress")
+const { getSSHClient } = require("../../services/sshConector/sshClient")
+
 
 class DeviceRepository extends DeviceInterface {
 
@@ -39,7 +41,7 @@ class DeviceRepository extends DeviceInterface {
             })
             if (!newDevice){
                 return {status: "error", message: "Error creating device"}
-            }
+            } 
 
             const updateIp = await IpAdresses.update({
                 mac_address: mac_address,
@@ -52,6 +54,38 @@ class DeviceRepository extends DeviceInterface {
             { 
                 where: { ip_address_id: newDevice.ip_address_id }
             });
+
+            const ssh = getSSHClient()
+
+            const command = `
+                config firewall address
+                edit "IP_${ip.ip_address.replace(/\./g, "_")}"
+                set group "${internet_level}"
+                next
+                end
+            `;
+
+            const sshResponse = await new Promise((resolve, reject) => {
+                ssh.exec(command, (err, stream) => {
+                    if (err) return reject(err);
+                    let stdout = '';
+                    let stderr = '';
+    
+                    stream
+                        .on('close', (code) => {
+                            if (code === 0) resolve(stdout);
+                            else reject(stderr);
+                        })
+                        .on('data', (data) => {
+                            stdout += data.toString();
+                        })
+                        .stderr.on('data', (data) => {
+                            stderr += data.toString();
+                        });
+                });
+            });
+    
+            console.log('Fortigate Response:', sshResponse);   
 
             //CREACIÓN DEL REGISTRO EN EL HISTORIAL DE MOVIMIENTOS
             const date = new Date()
@@ -80,12 +114,10 @@ class DeviceRepository extends DeviceInterface {
                 include: [
                     {
                         model: User,
-                        // as: 'user',
                         attributes: ['name']
                     },
                     {
                         model: IpAdresses,
-                        // as: 'ipAddress',
                         attributes: ['ip_address', 'mac_address', 'ubication', 'internet_level'] //, 'available', 'observations']
                     }
                 ], attributes: ['device_id', 'owner_name', 'device_type']
@@ -161,9 +193,40 @@ class DeviceRepository extends DeviceInterface {
             }, 
             { where: { ip_address_id: ip.ip_address_id}} )
 
+            const ssh = getSSHClient()
+
+            const command = `
+                config firewall address
+                edit "IP_${ip.ip_address.replace(/\./g, "_")}"
+                unset group
+                next
+                end
+            `;
+
+            const sshResponse = await new Promise((resolve, reject) => {
+                ssh.exec(command, (err, stream) => {
+                    if (err) return reject(err);
+                    let stdout = '';
+                    let stderr = '';
+
+                    stream
+                        .on('close', (code) => {
+                            if (code === 0) resolve(stdout);
+                            else reject(stderr);
+                        })
+                        .on('data', (data) => {
+                            stdout += data.toString();
+                        })
+                        .stderr.on('data', (data) => {
+                            stderr += data.toString();
+                        });
+                });
+            });
+
+            console.log('Fortigate Response:', sshResponse);
+
             const user = await User.findByPk(device.user_id)
             
-
             const date = new Date()
             const time = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
             const newHistory = await History.create({
@@ -201,7 +264,8 @@ class DeviceRepository extends DeviceInterface {
             throw new Error(error.message)
         }
     }
-
+    
+    //PENDIENTE SSH FORTIGATE
     async updateDeviceById(device_id, ip_address, owner_name, ubication, internet_level, groups){
         try{
             const device = await Device.findOne({ where: { device_id: device_id } })

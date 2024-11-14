@@ -2,6 +2,7 @@ const { User } = require("../entity/user")
 const { History } = require("../entity/history")
 const { Device } = require("../entity/device")
 const { IpAdresses } = require("../entity/ipAddress")
+const { InternetLevel } = require("../entity/internetLevel")
 
 module.exports = () => {
     
@@ -32,4 +33,13 @@ module.exports = () => {
         foreignKey: "ip_address_id" 
     })
 
+    InternetLevel.hasMany(IpAdresses, {
+        foreignKey: "internet_level_id",
+        onDelete: "SET NULL"
+    })
+
+    IpAdresses.belongsTo(InternetLevel, {
+        foreignKey: "internet_level_id",
+        onDelete: "SET NULL"
+    })
 }

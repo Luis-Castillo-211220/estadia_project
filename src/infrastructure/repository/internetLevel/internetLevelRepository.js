@@ -21,6 +21,7 @@ class InternetLevelRepository extends InternetLevelInterface{
                     message: 'Failed to create internet level'
                 }
             }
+            
             // Implements the create rule in fortigate
 
             const ssh = getSSHClient()
@@ -70,7 +71,64 @@ class InternetLevelRepository extends InternetLevelInterface{
             };
         }catch(err){
             console.error(err)
-            return null
+
+            // if()
+
+            throw new Error(err.message)
+        }
+    }
+
+    async deleteInternetLevelById(internet_level_id){
+        try{
+            const intLevel = await InternetLevel.findByPk(internet_level_id)
+
+            if(!intLevel){
+                return {
+                    status: 'error',
+                    message: 'Internet level not found'
+                }
+            }
+
+            const ssh = getSSHClient()
+
+            const command = `
+                config firewall policy
+                delete "${intLevel.name}"
+                end
+            `;
+
+            const sshResponse = await new Promise((resolve, reject) => {
+                ssh.exec(command, (err, stream) => {
+                    if (err) return reject(err);
+                    let stdout = '';
+                    let stderr = '';
+    
+                    stream
+                        .on('close', (code) => {
+                            if (code === 0) resolve(stdout);
+                            else reject(stderr);
+                        })
+                        .on('data', (data) => {
+                            stdout += data.toString();
+                        })
+                        .stderr.on('data', (data) => {
+                            stderr += data.toString();
+                        });
+                });
+            });
+
+            console.log("Fortigate Response: ", sshResponse)
+
+            await InternetLevel.destroy({ where: { internet_level_id: internet_level_id }})
+
+            return {
+                status:'success',
+                message: 'Internet level deleted successfully'
+            }
+
+        }catch (e) {
+            console.error(e)
+            throw new Error(e.message)
         }
     }
 
