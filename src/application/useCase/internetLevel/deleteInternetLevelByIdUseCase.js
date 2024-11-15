@@ -1,6 +1,6 @@
 const InternetLevelInterface = require("../../../domain/port/internetLevelInterface")
 
-class DeleteInternetLevelById{
+class DeleteInternetLevelByIdUseCase{
     constructor(internetLevelInterface = new InternetLevelInterface()){
         this.internetLevelInterface = internetLevelInterface
     }
@@ -19,4 +19,4 @@ class DeleteInternetLevelById{
     }
 }
 
-module.exports = { DeleteInternetLevelById }
+module.exports = { DeleteInternetLevelByIdUseCase }
