@@ -21,7 +21,7 @@ const connectDB = async () => {
         applyAssocitations();
         await sequelize.authenticate();
         console.log('Connection has been stablished successfully')
-        await sequelize.sync({force: false}).then(() => {
+        await sequelize.sync({force: true}).then(() => {
           console.log('Tablas creadas correctamente.');
         })
         .catch((error) => {

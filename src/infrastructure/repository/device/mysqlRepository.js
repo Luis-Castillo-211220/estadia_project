@@ -5,6 +5,7 @@ const Sequelize = require('sequelize')
 const { User } = require("../../../domain/entity/user")
 const { IpAdresses} = require("../../../domain/entity/ipAddress")
 const { getSSHClient } = require("../../services/sshConector/sshClient")
+const { sequelize } = require("../../../database/sqlserver")
 
 
 class DeviceRepository extends DeviceInterface {
@@ -110,6 +111,9 @@ class DeviceRepository extends DeviceInterface {
 
     async getAllDevices(){
         try{
+
+            
+
             const devices = await Device.findAll({
                 include: [
                     {

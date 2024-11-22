@@ -7,7 +7,7 @@ class DeleteInternetLevelByIdController {
     
     async run(req = Request, res = Response){
         try{
-            const internetLevelId = req.params.id
+            const internetLevelId = req.params.internet_level_id
             const result = await this.deleteInternetLevelByIdUseCase.run(internetLevelId)
 
             if(result.status === "success"){

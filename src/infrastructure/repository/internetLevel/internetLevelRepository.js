@@ -21,46 +21,70 @@ class InternetLevelRepository extends InternetLevelInterface{
                     message: 'Failed to create internet level'
                 }
             }
+
+            console.log(result)
             
             // Implements the create rule in fortigate
 
+            const trafficShaperName = `traffic-shaper-${name.replace(/\s+/g, '_').toLowerCase()}`;
+            const servicesFormatted = allowed_services
+            ? allowed_services.replace(/,/g, '')
+            : 'ALL';
+
+            const scheduleFormatted = allowed_timeframe === 'always' ? 'always' : allowed_timeframe;
+
             const ssh = getSSHClient()
+
+        // Comando para crear el perfil de tráfico
+            const trafficShaperCommand = `
+                config firewall shaper traffic-shaper
+                edit "${trafficShaperName}"
+                set guaranteed-bandwidth ${bandwidth_limit}
+                set maximum-bandwidth ${bandwidth_limit}
+                next
+                end`;
 
             const command = `
                 config firewall policy
-                edit ${result.id}
+                edit ${result.internet_level_id}
                 set name "${name}"
-                set srcintf "lan"
-                set dstintf "wan"
+                set srcintf "port1"
+                set dstintf "fortilink"
                 set srcaddr "all"
                 set dstaddr "all"
-                set service ${allowed_services.replace(/,/g, ' ')}
-                set schedule "${allowed_timeframe === 'always' ? 'always' : allowed_timeframe}"
+                set service ${servicesFormatted}
+                set schedule "${scheduleFormatted}"
                 set action accept
                 set logtraffic all
                 next
-                end
-            `;
+                end`
+            ;
 
-            const sshResponse = await new Promise((resolve, reject) => {
-                ssh.exec(command, (err, stream) => {
-                    if (err) return reject(err);
-                    let stdout = '';
-                    let stderr = '';
-    
-                    stream
-                        .on('close', (code) => {
-                            if (code === 0) resolve(stdout);
-                            else reject(stderr);
-                        })
-                        .on('data', (data) => {
-                            stdout += data.toString();
-                        })
-                        .stderr.on('data', (data) => {
-                            stderr += data.toString();
+            const executeCommand = async (cmd) => {
+                    return new Promise((resolve, reject) => {
+                        ssh.exec(cmd, (err, stream) => {
+                            if (err) return reject(err);
+        
+                            let stdout = '';
+                            let stderr = '';
+        
+                            stream
+                                .on('close', (code) => {
+                                    if (code === 0) resolve(stdout);
+                                    else reject(stderr);
+                                })
+                                .on('data', (data) => {
+                                    stdout += data.toString();
+                                })
+                                .stderr.on('data', (data) => {
+                                    stderr += data.toString();
+                                });
                         });
-                });
-            });
+                    });
+            };
+            
+            console.log(await executeCommand(trafficShaperCommand))
+            const sshResponse = await executeCommand(command);
 
             console.log("Fortigate Response: ", sshResponse)
 
@@ -71,9 +95,6 @@ class InternetLevelRepository extends InternetLevelInterface{
             };
         }catch(err){
             console.error(err)
-
-            // if()
-
             throw new Error(err.message)
         }
     }
@@ -88,36 +109,46 @@ class InternetLevelRepository extends InternetLevelInterface{
                     message: 'Internet level not found'
                 }
             }
+            
+            const trafficName = `traffic-shaper${intLevel.name}`
 
             const ssh = getSSHClient()
 
+            const executeCommand = async (cmd) => {
+                return new Promise((resolve, reject) => {
+                    ssh.exec(cmd, (err, stream) => {
+                        if (err) return reject(err);
+    
+                        let stdout = '';
+                        let stderr = '';
+    
+                        stream
+                            .on('close', (code) => {
+                                if (code === 0) resolve(stdout);
+                                else reject(stderr);
+                            })
+                            .on('data', (data) => {
+                                stdout += data.toString();
+                            })
+                            .stderr.on('data', (data) => {
+                                stderr += data.toString();
+                            });
+                    });
+                });
+            };
+
             const command = `
                 config firewall policy
-                delete "${intLevel.name}"
-                end
-            `;
+                delete "${intLevel.internet_level_id}"
+                end`;
 
-            const sshResponse = await new Promise((resolve, reject) => {
-                ssh.exec(command, (err, stream) => {
-                    if (err) return reject(err);
-                    let stdout = '';
-                    let stderr = '';
-    
-                    stream
-                        .on('close', (code) => {
-                            if (code === 0) resolve(stdout);
-                            else reject(stderr);
-                        })
-                        .on('data', (data) => {
-                            stdout += data.toString();
-                        })
-                        .stderr.on('data', (data) => {
-                            stderr += data.toString();
-                        });
-                });
-            });
+            const comandShaper = `
+                config firewall shaper traffic-shaper
+                delete "${trafficName}"
+                end`
 
-            console.log("Fortigate Response: ", sshResponse)
+            console.log("Shaper traffic Deleting response: \n", await executeCommand(comandShaper));
+            console.log("Policy Deleting response: \n", await executeCommand(command));
 
             await InternetLevel.destroy({ where: { internet_level_id: internet_level_id }})
 
