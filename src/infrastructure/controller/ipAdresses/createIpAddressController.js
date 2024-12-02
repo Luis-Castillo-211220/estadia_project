@@ -7,8 +7,8 @@ class CreateIpAddressController {
 
     async run(req = Request, res = Response){
         try{
-            const { ip_address } = req.body
-            const ipAddress = await this.createIpAddressUseCase.run(ip_address)
+            const { ip_address, mask } = req.body
+            const ipAddress = await this.createIpAddressUseCase.run(ip_address, mask)
 
             if(ipAddress.status === 'success'){
                 res.status(201).json({

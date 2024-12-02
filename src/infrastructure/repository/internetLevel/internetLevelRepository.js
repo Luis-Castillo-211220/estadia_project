@@ -21,8 +21,6 @@ class InternetLevelRepository extends InternetLevelInterface{
                     message: 'Failed to create internet level'
                 }
             }
-
-            console.log(result)
             
             // Implements the create rule in fortigate
 
@@ -110,7 +108,7 @@ class InternetLevelRepository extends InternetLevelInterface{
                 }
             }
             
-            const trafficName = `traffic-shaper${intLevel.name}`
+            const trafficName = `traffic-shaper-${intLevel.name}`
 
             const ssh = getSSHClient()
 
@@ -144,7 +142,7 @@ class InternetLevelRepository extends InternetLevelInterface{
 
             const comandShaper = `
                 config firewall shaper traffic-shaper
-                delete "${trafficName}"
+                delete "${trafficName.replace(/\s+/g, '_').toLowerCase()}"
                 end`
 
             console.log("Shaper traffic Deleting response: \n", await executeCommand(comandShaper));

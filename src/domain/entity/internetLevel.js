@@ -25,7 +25,7 @@ const InternetLevel = sequelize.define('InternetLevel', {
         defaultValue: 'always'
     },
     bandwidth_limit: {
-        type: DataTypes.INTEGER
+        type: DataTypes.INTEGER // Kbps
     },
     priority:{
         type: DataTypes.INTEGER,

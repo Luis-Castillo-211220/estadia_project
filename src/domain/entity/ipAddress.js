@@ -1,6 +1,7 @@
 const { DataTypes } = require('sequelize')
 const { sequelize } = require('../../database/sqlserver')
 const { InternetLevel } = require('../entity/internetLevel')
+const { IpGroup } = require('../entity/ipGroup')
 
 const IpAdresses = sequelize.define('IpAdresses', {
     ip_address_id: {
@@ -35,11 +36,18 @@ const IpAdresses = sequelize.define('IpAdresses', {
         type: DataTypes.STRING,
         allowNull: true
     },
-    internet_level:{ //id llave foranea
+    internet_level_id:{ //id llave foranea
         type: DataTypes.INTEGER,
         references: {
             model: InternetLevel,
             key: 'internet_level_id'
+        }
+    },
+    ip_group_id: {
+        type: DataTypes.INTEGER,
+        references: {
+            model: IpGroup,
+            key: 'ip_group_id'
         }
     },
     proxy: {
@@ -67,6 +75,16 @@ const IpAdresses = sequelize.define('IpAdresses', {
 
             if(instance.available && (instance.mac_address != null || instance.owner_name != null || instance.ubication != null || instance.internet_level != null)) {
                 throw new Error('No se pueden tener campos con una IP disponible')
+            }
+        },
+        beforeCreate: (ipAddress) => {
+            if(ipAddress.internet_level && ipAddress.group){
+                throw new Error('Una Direccion Ip no puede estar asociada a un grupo si ya tiene un nivel de internet y a un grupo de IP al mismo tiempo.')
+            }
+        },
+        beforeUpdate: (ipAddress) => {
+            if(ipAddress.internet_level && ipAddress.group){
+                throw new Error('Una Direccion Ip no puede estar asociada a un grupo si ya tiene un nivel de internet y a un grupo de IP al mismo tiempo.')
             }
         }
     }

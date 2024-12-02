@@ -3,6 +3,7 @@ const { History } = require("../entity/history")
 const { Device } = require("../entity/device")
 const { IpAdresses } = require("../entity/ipAddress")
 const { InternetLevel } = require("../entity/internetLevel")
+const { IpGroup } = require("../entity/ipGroup")
 
 module.exports = () => {
     
@@ -29,7 +30,7 @@ module.exports = () => {
         foreignKey: "ip_address_id"
     })
     
-    Device.belongsTo(IpAdresses, {
+    Device.belongsTo(IpAdresses, {  
         foreignKey: "ip_address_id" 
     })
 
@@ -39,6 +40,24 @@ module.exports = () => {
     })
 
     IpAdresses.belongsTo(InternetLevel, {
+        foreignKey: "internet_level_id",
+        onDelete: "SET NULL"
+    })
+
+    IpGroup.hasMany(IpAdresses, {
+        foreignKey: "ip_group_id",
+    })
+
+    IpAdresses.belongsTo(IpGroup, {
+        foreignKey: "ip_group_id",
+    })
+
+    InternetLevel.hasOne(IpGroup, {
+        foreignKey: "internet_level_id",
+        onDelete: "SET NULL"
+    })
+
+    IpGroup.belongsTo(InternetLevel, {
         foreignKey: "internet_level_id",
         onDelete: "SET NULL"
     })

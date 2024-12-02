@@ -8,6 +8,7 @@ const { historyRouter } = require('./src/infrastructure/routes/historyRouter');
 const { userRouter } = require('./src/infrastructure/routes/userRoutes')
 const { ipAdressesRouter } = require('./src/infrastructure/routes/ipAdressesRouter')
 const {  internetLevelRouter } = require('./src/infrastructure/routes/internetLevelRoutes')
+const { ipGroupRouter } = require('./src/infrastructure/routes/ipGroupRouter')
 const { initializeConnection } = require("./src/infrastructure/services/sshConector/sshClient")
 
 const app = express();
@@ -26,6 +27,7 @@ app.use('/api/v2/history/', historyRouter)
 app.use('/api/v3/user/', userRouter)
 app.use('/api/v4/ipAdresses/', ipAdressesRouter)
 app.use('/api/v5/internetLevel/', internetLevelRouter)
+app.use('/api/v6/ipGroup/', ipGroupRouter)
 
 connectDB().then(async () => {
     try{
