@@ -6,11 +6,13 @@ const { User } = require("../../../domain/entity/user")
 const { IpAdresses} = require("../../../domain/entity/ipAddress")
 const { getSSHClient } = require("../../services/sshConector/sshClient")
 const { sequelize } = require("../../../database/sqlserver")
+const { InternetLevel } = require("../../../domain/entity/internetLevel")
+const { IpGroup } = require("../../../domain/entity/ipGroup")
 
 
 class DeviceRepository extends DeviceInterface {
 
-    async createDevice(ip_address_id, owner_name, device_type, brand, model, serial, patrimony, user_id, mac_address, ubication, internet_level, proxy, observations){
+    async createDevice(ip_address_id, owner_name, device_type, brand, model, serial, patrimony, user_id, mac_address, ubication, internet_level_id, ip_group_id, proxy, observations){
         try{
             const user = await User.findByPk(user_id)
             if(!user){
@@ -26,7 +28,19 @@ class DeviceRepository extends DeviceInterface {
             if(!ip.available){
                 return {status: 'error', message: 'IP Address no disponible'}
             }
+
+            const device = await Device.findOne({
+                where: { ip_address_id: ip_address_id }
+            })
             
+            if(device){
+                return {status: 'error', message: 'Device already exists for this IP Address'}
+            }
+
+            if (internet_level_id && ip_group_id) {
+                return { status: 'error', message: 'Cannot assign both an Internet Level and an IP Group at the same time' };
+            }
+
             const newDevice = await Device.create({
                 ip_address_id: ip.ip_address_id,
                 owner_name: owner_name,
@@ -36,35 +50,59 @@ class DeviceRepository extends DeviceInterface {
                 serial: serial,
                 patrimony: patrimony,
                 user_id: user_id,
-            }, {
-                fields: ["ip_address_id", "owner_name", "device_type", "brand", "model", 
-                    "serial", "patrimony", "user_id"]
             })
+
             if (!newDevice){
                 return {status: "error", message: "Error creating device"}
             } 
 
-            const updateIp = await IpAdresses.update({
+            const ipUpdated = await IpAdresses.update({
                 mac_address: mac_address,
                 ubication: ubication,
-                internet_level: internet_level || "Nivel 1",
+                internet_level_id: internet_level_id || null,
+                ip_group_id: ip_group_id || null,
                 proxy: proxy,
                 available: false,
                 observations: observations
-            }, 
-            { 
+            }, {
                 where: { ip_address_id: newDevice.ip_address_id }
-            });
+            })
 
             const ssh = getSSHClient()
 
-            const command = `
-                config firewall address
-                edit "IP_${ip.ip_address.replace(/\./g, "_")}"
-                set group "${internet_level}"
-                next
-                end
-            `;
+            let command = ``;
+
+            if(internet_level_id){
+                const internet_policy = await InternetLevel.findByPk(internet_level_id)
+                if(!internet_policy){
+                    return {
+                        status: 'error',
+                        message: 'Internet Level not found'
+                    }
+                }
+                command = `
+                    config firewall address
+                    edit "IP_${ip.ip_address.replace(/\./g, "_")}"
+                    set category "${internet_policy.name}" 
+                    next
+                    end
+                `;
+            }else if(ip_group_id){
+                const ipGroup = await IpGroup.findByPk(ip_group_id)
+                if(!ipGroup){
+                    return {
+                        status: 'error',
+                        message: 'IP Group not found'
+                    }
+                }
+                command = `
+                    config firewall addrgrp
+                    edit "${ipGroup.name}"
+                    append member "IP_${ip.ip_address.replace(/\./g, "_")}"
+                    next
+                    end
+                `;
+            }
 
             const sshResponse = await new Promise((resolve, reject) => {
                 ssh.exec(command, (err, stream) => {
@@ -95,9 +133,8 @@ class DeviceRepository extends DeviceInterface {
                 user_id: user.user_id,
                 date: date.toISOString().split('T')[0],
                 time: time,
-                // time: date.toTimeString().split(' ')[0],
                 action: 'CREATE DEVICE',
-                description: `Dispositivo creado: IP:${ip.ip_address} \n Creado por: ${user.name} \n Propietario: ${newDevice.owner_name}`,
+                description: `Dispositivo creado: \nIP:${ip.ip_address} \nCreado por: ${user.name} \n Propietario: ${newDevice.owner_name}`,
             })
 
             if(!newHistory){
@@ -111,9 +148,6 @@ class DeviceRepository extends DeviceInterface {
 
     async getAllDevices(){
         try{
-
-            
-
             const devices = await Device.findAll({
                 include: [
                     {

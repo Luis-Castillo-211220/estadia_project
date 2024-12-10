@@ -12,6 +12,9 @@ const { GetAllIpAddressesAvailableController } = require("../../controller/ipAdr
 const { DeleteIpAddressUseCase } = require("../../../application/useCase/ipAdresses/deleteIpAddressUseCase")
 const { DeleteIpAddressController } = require("../../controller/ipAdresses/deleteIpAddressController")
 
+const { AddIpAddressInGroupUseCase } = require('../../../application/useCase/ipAdresses/addIpAddressInGroupUseCase')
+const { AddIpAddressInGroupController } = require('../../controller/ipAdresses/addIpAddressInGroupController')
+
 const ipAdressesRepository = new IpAdressesRepository()
 
 const getAllIpAdressesUseCase = new GetAllIpAdressesUseCase(ipAdressesRepository)
@@ -26,9 +29,13 @@ const getAllIpAddressesAvailableController = new GetAllIpAddressesAvailableContr
 const deleteIpAddressUseCase = new DeleteIpAddressUseCase(ipAdressesRepository)
 const deleteIpAddressController = new DeleteIpAddressController(deleteIpAddressUseCase)
 
+const addIpAddressInGroupUseCase = new AddIpAddressInGroupUseCase(ipAdressesRepository)
+const addIpAddressInGroupController = new AddIpAddressInGroupController(addIpAddressInGroupUseCase)
+
 module.exports = {
     getAllIpAddressController,
     createIpAddressController,
     getAllIpAddressesAvailableController,
-    deleteIpAddressController
+    deleteIpAddressController,
+    addIpAddressInGroupController
 }

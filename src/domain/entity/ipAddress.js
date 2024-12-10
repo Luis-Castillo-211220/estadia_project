@@ -41,14 +41,16 @@ const IpAdresses = sequelize.define('IpAdresses', {
         references: {
             model: InternetLevel,
             key: 'internet_level_id'
-        }
+        },
+        allowNull: true
     },
     ip_group_id: {
         type: DataTypes.INTEGER,
         references: {
             model: IpGroup,
             key: 'ip_group_id'
-        }
+        },
+        allowNull: true
     },
     proxy: {
         type: DataTypes.STRING,

@@ -32,6 +32,15 @@ class IPAddressesInterface{
     async deleteIpAddress(ip_address){
         throw new Error("deleteIpAddress method not implemented in IPAddresses interface")
     }
+
+    /**
+     * @param {String|Array<String>} ip_addresses
+     * @param {Number} ip_group_id}
+     * @returns {Promise<String>}
+     */
+    async addIpAddressInGroup(ip_addresses, ip_group_id) {
+        throw new Error("addIpAddressInGroup method not implemented in IPAddresses interface")
+    }
 }
 
 module.exports = IPAddressesInterface;

@@ -17,14 +17,15 @@ class CreateDeviceUseCase{
      * @param {Number} user_id
      * @param {String} mac_address
      * @param {String} ubication
-     * @param {String} internet_level
+     * @param {Number} internet_level_id
+     * @param {Number} ip_group_id
      * @param {String} proxy
      * @param {String} observations
      * @returns {Promise<String|null>}
      */
-    async run(ip_address_id, owner_name, device_type, brand, model, serial, patrimony, user_id, mac_address, ubication, internet_level, proxy, observations){
+    async run(ip_address_id, owner_name, device_type, brand, model, serial, patrimony, user_id, mac_address, ubication, internet_level_id, ip_group_id, proxy, observations){
         try{
-            const newDevice = await this.deviceInterface.createDevice(ip_address_id, owner_name, device_type, brand, model, serial, patrimony, user_id, mac_address, ubication, internet_level, proxy, observations)
+            const newDevice = await this.deviceInterface.createDevice(ip_address_id, owner_name, device_type, brand, model, serial, patrimony, user_id, mac_address, ubication, internet_level_id, ip_group_id, proxy, observations)
             if (newDevice){
                 return newDevice
             }else{

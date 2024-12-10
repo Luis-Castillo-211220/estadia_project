@@ -5,4 +5,6 @@ Modelos definidos por el momento:
 - Devices
 - Users
 - History (Historial)
-- Ubications
+- Ip Addresses
+- Ip Groups
+- Internet Level

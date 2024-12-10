@@ -2,7 +2,7 @@ const { Device } = require('../entity/device')
 
 class DeviceInterface{
     /**
-     * @param {String} ip_address_id //ip_address 
+     * @param {Number} ip_address_id //ip_address 
      * @param {String} owner_name
      * @param {String} device_type
      * @param {String} brand
@@ -12,12 +12,13 @@ class DeviceInterface{
      * @param {Number} user_id
      * @param {String} mac_address
      * @param {String} ubication
-     * @param {String} internet_level
+     * @param {Number|null} internet_level_id
+     * @param {Number|null} ip_group_id
      * @param {String} proxy
      * @param {String} observations
      * @returns {Promise<String|null>}
      */
-    async createDevice(ip_address_id, owner_name, device_type, brand, model, serial, patrimony, user_id, mac_address, ubication, internet_level, proxy, observations){
+    async createDevice(ip_address_id, owner_name, device_type, brand, model, serial, patrimony, user_id, mac_address, ubication, internet_level_id, ip_group_id, proxy, observations){
         throw new Error("create method not implemented in Device interface")
     }
 
