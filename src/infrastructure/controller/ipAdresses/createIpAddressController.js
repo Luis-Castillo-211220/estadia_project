@@ -8,22 +8,21 @@ class CreateIpAddressController {
     async run(req = Request, res = Response){
         try{
             const { ip_address, mask } = req.body
-            const ipAddress = await this.createIpAddressUseCase.run(ip_address, mask)
-
-            if(ipAddress.status === 'success'){
+            const result = await this.createIpAddressUseCase.run(ip_address, mask)
+            if(result.status === 'success'){
                 res.status(201).json({
-                    ipAddress
+                    result
                 })
             } else {
                 res.status(400).json({
-                    ipAddress
+                    result
                 })
             }
         }catch (e) {
-            res.status(500).json({
-                error: e.message
-            })
             console.error(e)
+            res.status(500).json({
+                error: 'Internal Server Error'
+            })
         }
     }
 }

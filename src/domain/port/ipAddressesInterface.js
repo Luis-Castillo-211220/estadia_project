@@ -12,7 +12,7 @@ class IPAddressesInterface{
     /**
      * @param {String} ip_address
      * @param {String} mask
-     * @returns {Promise<String|null>}
+     * @returns {Promise<String>}
      */
     async createIpAddress(ip_address, mask){
         throw new Error("createIpAddress method not implemented in IPAddresses interface")

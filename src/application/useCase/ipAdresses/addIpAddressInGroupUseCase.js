@@ -6,11 +6,11 @@ class AddIpAddressInGroupUseCase {
     }
 
     /**
-     * @param {String} ip_addresses
-     * @param {String} ip_group_id
-     * @returns {Promise<boolean|String>}
+     * @param {String|Array<String>} ip_addresses
+     * @param {Number} ip_group_id
+     * @returns {Promise<String>}
      */
-    async run(){
+    async run(ip_addresses, ip_group_id){
         try{
             const result = await this.iPAddressesInterface.addIpAddressInGroup(ip_addresses, ip_group_id);
             return result

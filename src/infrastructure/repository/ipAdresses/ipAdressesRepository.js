@@ -1,8 +1,9 @@
 const IpAdressesInterface = require("../../../domain/port/ipAddressesInterface")
 const { IpAdresses } = require("../../../domain/entity/ipAddress")
 const { getSSHClient } = require("../../services/sshConector/sshClient")
-const sequelize = require("sequelize");
+const { sequelize } = require('../../../database/sqlserver');
 const { IpGroup } = require("../../../domain/entity/ipGroup");
+const { QueryTypes } = require('sequelize')
 
 class IpAdressesRepository extends IpAdressesInterface{
 
@@ -17,20 +18,22 @@ class IpAdressesRepository extends IpAdressesInterface{
 
     async createIpAddress(ip_address, mask){
         try{
+            const existingIpAddress = await IpAdresses.findOne({ where: { ip_address: ip_address } })
 
-            if(await IpAdresses.findOne({ where: { ip_address: ip_address}})){
+            if(existingIpAddress){
                 return {
                     status: 'error',
                     message: 'IP address already exists'
                 }
             }
 
-            const ipAddress = await IpAdresses.create({ 
-                ip_address: ip_address,
-                mask: mask
+            const result = await IpAdresses.create({
+                ip_address,
+                mask,
+                available: true
             })
 
-            if(!ipAddress){
+            if(!result){
                 return {
                     status: 'error',
                     message: 'Error creating IP address'
@@ -73,17 +76,15 @@ class IpAdressesRepository extends IpAdressesInterface{
             return {
                 status: 'success',
                 message: 'IP address created successfully',
-                data: ipAddress
+                data: result
             };
         }catch(e){
-            console.error('Error in createIpAddress:', e.message);
-
-            // Revertir creación en base de datos si falla en Fortigate
-            if (ip_address) {
-                await IpAdresses.destroy({ where: { ip_address: ip_address } });
-            }
+            console.error('Error in createIpAddress:', e.message);   
             
-            throw new Error(e.message);
+            return {
+                status: 'error',
+                message: e.message
+            }
         }
     }
 

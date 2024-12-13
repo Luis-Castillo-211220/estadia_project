@@ -1,9 +1,9 @@
 const { Device } = require("../../../domain/entity/device")
 const { History } = require("../../../domain/entity/history")
-const DeviceInterface  = require("../../../domain/port/deviceInterface")
+const DeviceInterface = require("../../../domain/port/deviceInterface")
 const Sequelize = require('sequelize')
 const { User } = require("../../../domain/entity/user")
-const { IpAdresses} = require("../../../domain/entity/ipAddress")
+const { IpAdresses } = require("../../../domain/entity/ipAddress")
 const { getSSHClient } = require("../../services/sshConector/sshClient")
 const { sequelize } = require("../../../database/sqlserver")
 const { InternetLevel } = require("../../../domain/entity/internetLevel")
@@ -12,29 +12,45 @@ const { IpGroup } = require("../../../domain/entity/ipGroup")
 
 class DeviceRepository extends DeviceInterface {
 
-    async createDevice(ip_address_id, owner_name, device_type, brand, model, serial, patrimony, user_id, mac_address, ubication, internet_level_id, ip_group_id, proxy, observations){
-        try{
+    async createDevice(ip_address_id, owner_name, device_type, brand, model, serial, patrimony,
+        user_id, mac_address, ubication, internet_level_id, ip_group_id, proxy, observations) {
+        const transaction = await sequelize.transaction();
+        try {
             const user = await User.findByPk(user_id)
-            if(!user){
-                return {status: 'error', message: 'User not found'}
+            if (!user) {
+                return { status: 'error', message: 'User not found' }
             }
 
-            const ip = await IpAdresses.findOne(ip_address_id)
+            const ip = await IpAdresses.findByPk(ip_address_id)
 
-            if(!ip){
-                return {status: 'error', message: 'IP Address not found'}
+            if (!ip) {
+                return { status: 'error', message: 'IP Address not found' }
             }
 
-            if(!ip.available){
-                return {status: 'error', message: 'IP Address no disponible'}
+            if (!ip.available) {
+                return { status: 'error', message: 'IP Address no disponible' }
+            }
+
+            if (ip.ip_group_id != null && ip_group_id) {
+                return {
+                    status: 'error',
+                    message: 'IP Group exists'
+                }
+            }
+
+            if (ip.internet_level_id != null && internet_level_id) {
+                return {
+                    status: 'error',
+                    message: 'Internet Level exists'
+                }
             }
 
             const device = await Device.findOne({
                 where: { ip_address_id: ip_address_id }
             })
-            
-            if(device){
-                return {status: 'error', message: 'Device already exists for this IP Address'}
+
+            if (device) {
+                return { status: 'error', message: 'Device already exists for this IP Address' }
             }
 
             if (internet_level_id && ip_group_id) {
@@ -52,15 +68,15 @@ class DeviceRepository extends DeviceInterface {
                 user_id: user_id,
             })
 
-            if (!newDevice){
-                return {status: "error", message: "Error creating device"}
-            } 
+            if (!newDevice) {
+                return { status: "error", message: "Error creating device" }
+            }
 
             const ipUpdated = await IpAdresses.update({
                 mac_address: mac_address,
                 ubication: ubication,
-                internet_level_id: internet_level_id || null,
-                ip_group_id: ip_group_id || null,
+                internet_level_id: internet_level_id,
+                ip_group_id: ip_group_id,
                 proxy: proxy,
                 available: false,
                 observations: observations
@@ -72,9 +88,9 @@ class DeviceRepository extends DeviceInterface {
 
             let command = ``;
 
-            if(internet_level_id){
+            if (internet_level_id) {
                 const internet_policy = await InternetLevel.findByPk(internet_level_id)
-                if(!internet_policy){
+                if (!internet_policy) {
                     return {
                         status: 'error',
                         message: 'Internet Level not found'
@@ -87,9 +103,9 @@ class DeviceRepository extends DeviceInterface {
                     next
                     end
                 `;
-            }else if(ip_group_id){
+            } else if (ip_group_id) {
                 const ipGroup = await IpGroup.findByPk(ip_group_id)
-                if(!ipGroup){
+                if (!ipGroup) {
                     return {
                         status: 'error',
                         message: 'IP Group not found'
@@ -109,7 +125,7 @@ class DeviceRepository extends DeviceInterface {
                     if (err) return reject(err);
                     let stdout = '';
                     let stderr = '';
-    
+
                     stream
                         .on('close', (code) => {
                             if (code === 0) resolve(stdout);
@@ -123,8 +139,8 @@ class DeviceRepository extends DeviceInterface {
                         });
                 });
             });
-    
-            console.log('Fortigate Response:', sshResponse);   
+
+            console.log('Fortigate Response:', sshResponse);
 
             //CREACIÓN DEL REGISTRO EN EL HISTORIAL DE MOVIMIENTOS
             const date = new Date()
@@ -137,17 +153,19 @@ class DeviceRepository extends DeviceInterface {
                 description: `Dispositivo creado: \nIP:${ip.ip_address} \nCreado por: ${user.name} \n Propietario: ${newDevice.owner_name}`,
             })
 
-            if(!newHistory){
+            if (!newHistory) {
                 throw new Error('Error al crear el registro en el historial, en repositorio')
             }
-            return {status: 'success', message: 'Device created', data: newDevice}
-        }catch(error){
+            await transaction.commit()
+            return { status: 'success', message: 'Device created', data: newDevice }
+        } catch (error) {
+            await transaction.rollback();
             throw new Error(error.message)
         }
     }
 
-    async getAllDevices(){
-        try{
+    async getAllDevices() {
+        try {
             const devices = await Device.findAll({
                 include: [
                     {
@@ -160,17 +178,17 @@ class DeviceRepository extends DeviceInterface {
                     }
                 ], attributes: ['device_id', 'owner_name', 'device_type']
             })
-            if (devices === undefined){
+            if (devices === undefined) {
                 throw new Error('Error al obtener los dispositivos, en repositorio')
             }
             return devices
-        }catch(error){
+        } catch (error) {
             throw new Error(error.message)
         }
     }
 
-    async getDeviceByIPAddress(ip_address){
-        try{
+    async getDeviceByIPAddress(ip_address) {
+        try {
             const ip = await IpAdresses.findOne({ where: { ip_address: ip_address } })
 
             const device = await Device.findOne({
@@ -189,36 +207,36 @@ class DeviceRepository extends DeviceInterface {
                 where: { ip_address_id: ip.ip_address_id }
             })
 
-            if (!device){
+            if (!device) {
                 return null
             }
             return device
-        }catch(error){
+        } catch (error) {
             throw new Error(error.message)
         }
     }
 
-    async deleteDeviceByIPAddress(ip_address){
-        try{
+    async deleteDeviceByIPAddress(ip_address) {
+        try {
             const ip = await IpAdresses.findOne({ where: { ip_address: ip_address } })
 
-            if(!ip){
-                return {status: 'error', message: 'IP address not found'} 
-            } else if(ip.available){
-                return {status: 'error', message: 'Ip address already available'}
+            if (!ip) {
+                return { status: 'error', message: 'IP address not found' }
+            } else if (ip.available) {
+                return { status: 'error', message: 'Ip address already available' }
             }
 
-            const device = await Device.findOne({ where: { ip_address_id: ip.ip_address_id }})
-            if(!device){
+            const device = await Device.findOne({ where: { ip_address_id: ip.ip_address_id } })
+            if (!device) {
                 // throw new Error("Device not found")
-                return {status: "not found", message: 'Device not found'}
+                return { status: "not found", message: 'Device not found' }
             }
 
             const affectedRows = await Device.destroy({ where: { ip_address_id: ip.ip_address_id } })
 
-            if(affectedRows === 0){
+            if (affectedRows === 0) {
                 // throw new Error('Error al eliminar el dispositivo, en repositorio')
-                return {status: "error", message: 'Error deleting device'}
+                return { status: "error", message: 'Error deleting device' }
             }
 
             const newIp = await IpAdresses.update({
@@ -228,8 +246,8 @@ class DeviceRepository extends DeviceInterface {
                 proxy: null,
                 available: true,
                 observations: null
-            }, 
-            { where: { ip_address_id: ip.ip_address_id}} )
+            },
+                { where: { ip_address_id: ip.ip_address_id } })
 
             const ssh = getSSHClient()
 
@@ -264,7 +282,7 @@ class DeviceRepository extends DeviceInterface {
             console.log('Fortigate Response:', sshResponse);
 
             const user = await User.findByPk(device.user_id)
-            
+
             const date = new Date()
             const time = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
             const newHistory = await History.create({
@@ -274,41 +292,43 @@ class DeviceRepository extends DeviceInterface {
                 action: 'ELIMINATED DEVICE',
                 description: `Dispositivo Eliminado: IP:${ip.ip_address} -> Disponible \n Eliminado por: ${user.name} \n`,
             })
-            return {status: "success", message: 'Device Deleted and ip address now is available'}
-        }catch(error){
+            return { status: "success", message: 'Device Deleted and ip address now is available' }
+        } catch (error) {
             throw new Error(error.message)
         }
     }
 
-    async getAllDevicesByIPAddress(ip_address){
+    async getAllDevicesByIPAddress(ip_address) {
         const Op = Sequelize.Op;
-        try{
+        try {
 
-            const ips = await IpAdresses.findAll({ where: { ip_address: { [Op.like]: `%${ip_address}%` }}})
+            const ips = await IpAdresses.findAll({ where: { ip_address: { [Op.like]: `%${ip_address}%` } } })
 
-            if(!ips || ips.length === 0){
-                return {status: 'error', message: 'IP address not found'}
+            if (!ips || ips.length === 0) {
+                return { status: 'error', message: 'IP address not found' }
             }
 
             const ipsId = ips.map(ip => ip.ip_address_id);
 
-            const devices = await Device.findAll({ where: 
-                { ip_address_id: { [Op.in]: `%${ipsId}%` } } })
-            if (devices === undefined){
-                return {status: 'error', message:'No devices found for ip address'}
+            const devices = await Device.findAll({
+                where:
+                    { ip_address_id: { [Op.in]: `%${ipsId}%` } }
+            })
+            if (devices === undefined) {
+                return { status: 'error', message: 'No devices found for ip address' }
             }
-            return {status: 'success', message: 'IP addresses found', data: devices}
-        }catch(error){
+            return { status: 'success', message: 'IP addresses found', data: devices }
+        } catch (error) {
             throw new Error(error.message)
         }
     }
-    
+
     //PENDIENTE SSH FORTIGATE
-    async updateDeviceById(device_id, ip_address, owner_name, ubication, internet_level, groups){
-        try{
+    async updateDeviceById(device_id, ip_address, owner_name, ubication, internet_level, groups) {
+        try {
             const device = await Device.findOne({ where: { device_id: device_id } })
-            if (!device){
-                return {status:"error", message: "Device not found"}
+            if (!device) {
+                return { status: "error", message: "Device not found" }
             }
 
             const updatedFields = {};
@@ -328,17 +348,17 @@ class DeviceRepository extends DeviceInterface {
             if (groups !== undefined && groups !== device.groups) {
                 updatedFields.groups = groups;
             }
-            
+
             // Si no hay cambios, evitamos la llamada innecesaria a la BD
             if (Object.keys(updatedFields).length === 0) {
-                return {status:'success', message: 'No hay cambios que actualizar'}
+                return { status: 'success', message: 'No hay cambios que actualizar' }
             }
 
-            const updatedDevice = await Device.update(updatedFields, 
+            const updatedDevice = await Device.update(updatedFields,
                 { where: { device_id: device_id } });
 
             if (!updatedDevice) {
-                return {status:'error', message: 'No se pudo actualizar el dispositivo'}
+                return { status: 'error', message: 'No se pudo actualizar el dispositivo' }
             }
 
             //CREACION DEL REGISTRO EN EL HISTORIAL DE MOVIMIENTOS
@@ -351,23 +371,25 @@ class DeviceRepository extends DeviceInterface {
                 action: 'UPDATE',
                 description: `Dispositivo actualizado: ${device.ip_address} \n Campos actualizados: ${updatedFields}`,
             })
-            
-            return {status: 'success', message: 'Dispositivo actualizado correctamente'}
-        }catch(err){
+
+            return { status: 'success', message: 'Dispositivo actualizado correctamente' }
+        } catch (err) {
             throw new Error(err.message)
         }
     }
 
-    async getDevicesByName(owner_name){
+    async getDevicesByName(owner_name) {
         const Op = Sequelize.Op;
-        try{
-            const devices = await Device.findAll({ where: 
-                { owner_name: { [Op.like]: `%${owner_name}%` } } })
-            if (devices === undefined){
+        try {
+            const devices = await Device.findAll({
+                where:
+                    { owner_name: { [Op.like]: `%${owner_name}%` } }
+            })
+            if (devices === undefined) {
                 throw new Error('Error al obtener los dispositivos por nombre, en repositorio')
             }
             return devices
-        }catch(error){
+        } catch (error) {
             throw new Error(error.message)
         }
     }

@@ -20,4 +20,4 @@ deviceRouter.put('/update/:device_id', updateDeviceByIdController.run.bind(updat
 deviceRouter.get('/getAll/:owner_name', getDevicesByNameController.run.bind(getDevicesByNameController));
 
 
-module.exports = { deviceRouter }   
+module.exports = { deviceRouter }

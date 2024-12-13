@@ -21,8 +21,10 @@ const IpAdresses = sequelize.define('IpAdresses', {
     mask: {
         type: DataTypes.STRING,
         validate: {
-            is: "/^(128|192|224|240|248|252|254|255)\.0\.0\.0$|^255\.(0|128|192|224|240|248|252|254|255)\.0\.0$|^255\.255\.(0|128|192|224|240|248|252|254|255)\.0$|^255\.255\.255\.(0|128|192|224|240|248|252|254|255)$/"
-        }
+            // is: "/^(128|192|224|240|248|252|254|255)\.0\.0\.0$|^255\.(0|128|192|224|240|248|252|254|255)\.0\.0$|^255\.255\.(0|128|192|224|240|248|252|254|255)\.0$|^255\.255\.255\.(0|128|192|224|240|248|252|254|255)$/",
+            isIPv4: true
+        },
+        unique: false
     },
     mac_address: {
         type: DataTypes.STRING,
@@ -30,7 +32,7 @@ const IpAdresses = sequelize.define('IpAdresses', {
         validate: {
             is: "^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})|([0-9a-fA-F]{4}\\.[0-9a-fA-F]{4}\\.[0-9a-fA-F]{4})$"
         },
-        unique: true,
+        unique: false,
     },
     ubication:{
         type: DataTypes.STRING,
@@ -71,10 +73,6 @@ const IpAdresses = sequelize.define('IpAdresses', {
 }, {
     hooks: {
         beforeValidate: (instance, options) => {
-            // if(!instance.available && instance.mac_address == null){
-            //     throw new Error('No puede tener MAC Address y estar disponible al mismo tiempo');
-            // }
-
             if(instance.available && (instance.mac_address != null || instance.owner_name != null || instance.ubication != null || instance.internet_level != null)) {
                 throw new Error('No se pueden tener campos con una IP disponible')
             }

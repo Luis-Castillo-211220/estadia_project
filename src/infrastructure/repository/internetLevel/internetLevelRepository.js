@@ -107,7 +107,7 @@ class InternetLevelRepository extends InternetLevelInterface{
                     message: 'Internet level not found'
                 }
             }
-            
+
             const trafficName = `traffic-shaper-${intLevel.name}`
 
             const ssh = getSSHClient()

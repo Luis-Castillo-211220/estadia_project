@@ -8,14 +8,14 @@ class GetAllIpGroupController {
 
     async run(req= Request, res = Response){
         try{
-            const ipGroup = await this.getAllIpGroupUseCase.run()
-            if(ipGroup.status === 'success'){
+            const result = await this.getAllIpGroupUseCase.run()
+            if(result.status === 'success'){
                 res.status(200).json({
-                    ipGroup
+                    result
                 })
             }else{
                 res.status(404).json({
-                    ipGroup
+                    result
                 })
             }
         } catch(error){

@@ -13,9 +13,10 @@ class IPGroupInterface{
      * @param {String} name
      * @param {String} description
      * @param {Number} internet_level_id
+     * @param {String|null} ip_address
      * @returns {Promise<boolean|string>}
      */
-    async createIpGroup(name, description, internet_level_id){
+    async createIpGroup(name, description, internet_level_id, ip_address){
         throw new Error('createIpGroup method not implemented in IPGroupInterface')
     }
 
