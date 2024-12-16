@@ -3,6 +3,7 @@ const sshConfig = require('./sshConfig'); // Archivo de configuración SSH
 
 let sshConnection = null; // Variable para almacenar la conexión SSH
 let isConnecting = false; // Evitar múltiples intentos de reconexión simultáneos
+let connectionPromise = null; // Promesa compartida para asegurar que todas las operaciones esperen la reconexión
 
 async function initializeConnection() {
     if (sshConnection) {
@@ -14,28 +15,32 @@ async function initializeConnection() {
 
     return new Promise((resolve, reject) => {
         sshConnection
-            .on('ready', () => {
+            .on("ready", () => {
                 console.log("SSH connection established with FortiGate.");
                 resolve(sshConnection);
             })
-            .on('error', (err) => {
+            .on("error", (err) => {
                 console.error("SSH connection error:", err);
-                sshConnection = null;
-                reconnect(); // Intentar reconectar
+                handleDisconnection(err);
                 reject(err);
             })
-            .on('end', () => {
+            .on("end", () => {
                 console.warn("SSH connection ended.");
-                sshConnection = null;
-                reconnect(); // Intentar reconectar
+                handleDisconnection();
             })
-            .on('close', (hadError) => {
+            .on("close", (hadError) => {
                 console.warn("SSH connection closed. Had error:", hadError);
-                sshConnection = null;
-                reconnect(); // Intentar reconectar
+                handleDisconnection();
             })
             .connect(sshConfig);
     });
+}
+
+function handleDisconnection(error) {
+    sshConnection = null;
+    if (!isConnecting) {
+        reconnect(); // Intentar reconectar si no se está reconectando ya
+    }
 }
 
 function reconnect() {
@@ -44,17 +49,32 @@ function reconnect() {
 
     console.log("Attempting to reconnect to FortiGate...");
 
-    setTimeout(async () => {
-        try {
-            await initializeConnection();
-            console.log("Reconnected to FortiGate successfully.");
-        } catch (err) {
-            console.error("Reconnection attempt failed:", err);
-            reconnect(); // Reintentar en caso de fallo
-        } finally {
-            isConnecting = false;
-        }
-    }, 5000); // Espera 5 segundos antes de reintentar
+    connectionPromise = new Promise((resolve, reject) => {
+        const tryReconnect = async () => {
+            try {
+                await initializeConnection();
+                console.log("Reconnected to FortiGate successfully.");
+                resolve(sshConnection);
+            } catch (err) {
+                console.error("Reconnection attempt failed. Retrying in 5 seconds:", err);
+                setTimeout(tryReconnect, 5000); // Reintentar en caso de fallo
+            } finally {
+                isConnecting = false;
+            }
+        };
+
+        tryReconnect();
+    });
+
+    return connectionPromise;
+}
+
+async function ensureConnection() {
+    if (!sshConnection) {
+        console.warn("SSH connection is not active. Waiting for reconnection...");
+        await reconnect(); // Esperar reconexión antes de continuar
+    }
+    return sshConnection;
 }
 
 function getSSHClient() {
@@ -66,5 +86,6 @@ function getSSHClient() {
 
 module.exports = {
     initializeConnection,
+    ensureConnection, // Nuevo método para garantizar la conexión antes de cualquier operación
     getSSHClient,
 };

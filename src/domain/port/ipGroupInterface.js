@@ -25,7 +25,7 @@ class IPGroupInterface{
      * @param {Number} new_internet_level_id
      * @returns {Promise<boolean|string>}
      */
-    async updateIpGroupInternetLevel(ip_group_id, new_internet_level_id){
+    async changeInternetLevelGroup(ip_group_id, new_internet_level_id){
         throw new Error('updateIpGroupInternetLevel method not implemented in IPGroupInterface')
     }
 }

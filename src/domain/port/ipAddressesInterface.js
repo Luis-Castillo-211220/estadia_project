@@ -41,6 +41,24 @@ class IPAddressesInterface{
     async addIpAddressInGroup(ip_addresses, ip_group_id) {
         throw new Error("addIpAddressInGroup method not implemented in IPAddresses interface")
     }
+
+    /**
+     * @param {String|Array<String>} ip_addresses
+     * @param {Number} ip_group_id
+     * @returns {Promise<String>}
+     */
+    async moveIpAddressOtherGroup(ip_address_id, ip_group_id) {
+        throw new Error("moveIpAddressOtherGroup method not implemented in IPAddresses interface")
+    }
+
+    /**
+     * @param {String|Array<String>} ip_addresses
+     * @param {Number} ip_group_id
+     * @returns {Promise<String>}
+     */
+    async removeGroupIp(){
+        throw new Error("removeGroupIp method not implemented in IPAddresses interface")
+    }
 }
 
 module.exports = IPAddressesInterface;

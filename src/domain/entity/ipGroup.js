@@ -22,7 +22,8 @@ const IpGroup = sequelize.define('IpGroup',{
         references: {
             model: InternetLevel,
             key: 'internet_level_id'
-        }
+        },
+        allowNull: true
     }
 })
 

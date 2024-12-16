@@ -6,14 +6,11 @@ const { User } = require("../../../domain/entity/user")
 const { IpAdresses } = require("../../../domain/entity/ipAddress")
 const { getSSHClient } = require("../../services/sshConector/sshClient")
 const { sequelize } = require("../../../database/sqlserver")
-const { InternetLevel } = require("../../../domain/entity/internetLevel")
-const { IpGroup } = require("../../../domain/entity/ipGroup")
-
 
 class DeviceRepository extends DeviceInterface {
 
     async createDevice(ip_address_id, owner_name, device_type, brand, model, serial, patrimony,
-        user_id, mac_address, ubication, internet_level_id, ip_group_id, proxy, observations) {
+        user_id, mac_address, ubication, proxy, observations) {
         const transaction = await sequelize.transaction();
         try {
             const user = await User.findByPk(user_id)
@@ -31,30 +28,12 @@ class DeviceRepository extends DeviceInterface {
                 return { status: 'error', message: 'IP Address no disponible' }
             }
 
-            if (ip.ip_group_id != null && ip_group_id) {
-                return {
-                    status: 'error',
-                    message: 'IP Group exists'
-                }
-            }
-
-            if (ip.internet_level_id != null && internet_level_id) {
-                return {
-                    status: 'error',
-                    message: 'Internet Level exists'
-                }
-            }
-
             const device = await Device.findOne({
                 where: { ip_address_id: ip_address_id }
             })
 
             if (device) {
                 return { status: 'error', message: 'Device already exists for this IP Address' }
-            }
-
-            if (internet_level_id && ip_group_id) {
-                return { status: 'error', message: 'Cannot assign both an Internet Level and an IP Group at the same time' };
             }
 
             const newDevice = await Device.create({
@@ -72,75 +51,15 @@ class DeviceRepository extends DeviceInterface {
                 return { status: "error", message: "Error creating device" }
             }
 
-            const ipUpdated = await IpAdresses.update({
+            await IpAdresses.update({
                 mac_address: mac_address,
                 ubication: ubication,
-                internet_level_id: internet_level_id,
-                ip_group_id: ip_group_id,
                 proxy: proxy,
                 available: false,
                 observations: observations
             }, {
                 where: { ip_address_id: newDevice.ip_address_id }
             })
-
-            const ssh = getSSHClient()
-
-            let command = ``;
-
-            if (internet_level_id) {
-                const internet_policy = await InternetLevel.findByPk(internet_level_id)
-                if (!internet_policy) {
-                    return {
-                        status: 'error',
-                        message: 'Internet Level not found'
-                    }
-                }
-                command = `
-                    config firewall address
-                    edit "IP_${ip.ip_address.replace(/\./g, "_")}"
-                    set category "${internet_policy.name}" 
-                    next
-                    end
-                `;
-            } else if (ip_group_id) {
-                const ipGroup = await IpGroup.findByPk(ip_group_id)
-                if (!ipGroup) {
-                    return {
-                        status: 'error',
-                        message: 'IP Group not found'
-                    }
-                }
-                command = `
-                    config firewall addrgrp
-                    edit "${ipGroup.name}"
-                    append member "IP_${ip.ip_address.replace(/\./g, "_")}"
-                    next
-                    end
-                `;
-            }
-
-            const sshResponse = await new Promise((resolve, reject) => {
-                ssh.exec(command, (err, stream) => {
-                    if (err) return reject(err);
-                    let stdout = '';
-                    let stderr = '';
-
-                    stream
-                        .on('close', (code) => {
-                            if (code === 0) resolve(stdout);
-                            else reject(stderr);
-                        })
-                        .on('data', (data) => {
-                            stdout += data.toString();
-                        })
-                        .stderr.on('data', (data) => {
-                            stderr += data.toString();
-                        });
-                });
-            });
-
-            console.log('Fortigate Response:', sshResponse);
 
             //CREACIÓN DEL REGISTRO EN EL HISTORIAL DE MOVIMIENTOS
             const date = new Date()
@@ -174,7 +93,7 @@ class DeviceRepository extends DeviceInterface {
                     },
                     {
                         model: IpAdresses,
-                        attributes: ['ip_address', 'mac_address', 'ubication', 'internet_level'] //, 'available', 'observations']
+                        attributes: ['ip_address', 'mac_address', 'ubication', 'internet_level_id', 'ip_group_id    '] //, 'available', 'observations']
                     }
                 ], attributes: ['device_id', 'owner_name', 'device_type']
             })
@@ -248,38 +167,6 @@ class DeviceRepository extends DeviceInterface {
                 observations: null
             },
                 { where: { ip_address_id: ip.ip_address_id } })
-
-            const ssh = getSSHClient()
-
-            const command = `
-                config firewall address
-                edit "IP_${ip.ip_address.replace(/\./g, "_")}"
-                unset group
-                next
-                end
-            `;
-
-            const sshResponse = await new Promise((resolve, reject) => {
-                ssh.exec(command, (err, stream) => {
-                    if (err) return reject(err);
-                    let stdout = '';
-                    let stderr = '';
-
-                    stream
-                        .on('close', (code) => {
-                            if (code === 0) resolve(stdout);
-                            else reject(stderr);
-                        })
-                        .on('data', (data) => {
-                            stdout += data.toString();
-                        })
-                        .stderr.on('data', (data) => {
-                            stderr += data.toString();
-                        });
-                });
-            });
-
-            console.log('Fortigate Response:', sshResponse);
 
             const user = await User.findByPk(device.user_id)
 

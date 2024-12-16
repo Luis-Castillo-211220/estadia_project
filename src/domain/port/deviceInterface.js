@@ -12,13 +12,11 @@ class DeviceInterface{
      * @param {Number} user_id
      * @param {String} mac_address
      * @param {String} ubication
-     * @param {Number|null} internet_level_id
-     * @param {Number|null} ip_group_id
      * @param {String} proxy
      * @param {String} observations
      * @returns {Promise<String|null>}
      */
-    async createDevice(ip_address_id, owner_name, device_type, brand, model, serial, patrimony, user_id, mac_address, ubication, internet_level_id, ip_group_id, proxy, observations){
+    async createDevice(ip_address_id, owner_name, device_type, brand, model, serial, patrimony, user_id, mac_address, ubication, proxy, observations){
         throw new Error("create method not implemented in Device interface")
     }
 

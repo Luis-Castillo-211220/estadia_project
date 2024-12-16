@@ -29,8 +29,14 @@ app.use('/api/v4/ipAdresses/', ipAdressesRouter)
 app.use('/api/v5/internetLevel/', internetLevelRouter)
 app.use('/api/v6/ipGroup/', ipGroupRouter)
 
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something broke!') || res.status(500).send('Internal Server Error')
+})
+
 connectDB().then(async () => {
     try{
+        console.log("Initializing FortiGate SSH connection...");
         await initializeConnection();
         console.log('SSH connection initialized successfully');
     }catch(err){

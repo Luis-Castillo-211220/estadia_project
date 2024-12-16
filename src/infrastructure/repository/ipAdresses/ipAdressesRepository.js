@@ -1,6 +1,6 @@
 const IpAdressesInterface = require("../../../domain/port/ipAddressesInterface")
 const { IpAdresses } = require("../../../domain/entity/ipAddress")
-const { getSSHClient } = require("../../services/sshConector/sshClient")
+const { getSSHClient, ensureConnection } = require("../../services/sshConector/sshClient")
 const { sequelize } = require('../../../database/sqlserver');
 const { IpGroup } = require("../../../domain/entity/ipGroup");
 const { QueryTypes } = require('sequelize')
@@ -17,6 +17,7 @@ class IpAdressesRepository extends IpAdressesInterface{
     }
 
     async createIpAddress(ip_address, mask){
+        const transaction = await sequelize.transaction();
         try{
             const existingIpAddress = await IpAdresses.findOne({ where: { ip_address: ip_address } })
 
@@ -31,6 +32,8 @@ class IpAdressesRepository extends IpAdressesInterface{
                 ip_address,
                 mask,
                 available: true
+            }, {
+                transaction: transaction
             })
 
             if(!result){
@@ -40,7 +43,7 @@ class IpAdressesRepository extends IpAdressesInterface{
                 }
             }
 
-            const ssh = getSSHClient()
+            const ssh = ensureConnection()
 
             const command = `
                 config firewall address
@@ -72,13 +75,14 @@ class IpAdressesRepository extends IpAdressesInterface{
 
             console.log("Fortigate Response: ", sshResponse)
 
-
+            transaction.commit();
             return {
                 status: 'success',
                 message: 'IP address created successfully',
                 data: result
             };
         }catch(e){
+            transaction.rollback();
             console.error('Error in createIpAddress:', e.message);   
             
             return {
@@ -103,6 +107,7 @@ class IpAdressesRepository extends IpAdressesInterface{
     }
 
     async deleteIpAddress(ip_address){
+        const transaction = await sequelize.transaction();
         try{
             const ipAddress = await IpAdresses.findOne({    where: { ip_address: ip_address }})
             if(!ipAddress){
@@ -116,7 +121,7 @@ class IpAdressesRepository extends IpAdressesInterface{
                 return {status: 'error', message: 'Ip address is associated with a device. \n Please remove device first.'}
             }
 
-            const ssh = getSSHClient();
+            const ssh = ensureConnection();
             const command = `
                 config firewall address
                 delete "IP_${ip_address.replace(/\./g, "_")}"  
@@ -145,19 +150,24 @@ class IpAdressesRepository extends IpAdressesInterface{
     
             console.log('Fortigate Response:', sshResponse);
 
-            const result = await ipAddress.destroy({ where: { ip_address: ip_address}});
+            const result = await ipAddress.destroy({ where: { ip_address: ip_address}},
+                {transaction: transaction}
+            );
 
             if(!result) {
                 return {status: 'error', message: 'Failed to delete IP address'}
             }
             
+            transaction.commit();
             return {status: 'success', message: 'Ip address deleted successfully'}
         }catch(e){
+            transaction.rollback();
             throw new Error(e.message);
         }
     }
 
     async addIpAddressInGroup(ip_addresses, ip_group_id){
+        const transaction = await sequelize.transaction();
         try{
             const ipGroup = await IpGroup.findByPk(ip_group_id);
 
@@ -212,11 +222,13 @@ class IpAdressesRepository extends IpAdressesInterface{
                 ipRecords.map((ipRecord) =>
                     ipRecord.update({
                         ip_group_id,
+                    }, {
+                        transaction: transaction
                     })
                 )
             );
 
-            const ssh = getSSHClient();
+            const ssh = ensureConnection();
 
             const command = `
                 config firewall addrgrp
@@ -253,6 +265,7 @@ class IpAdressesRepository extends IpAdressesInterface{
     
             console.log('Fortigate Response:', sshResponse);
 
+            transaction.commit();
             return {
                 status:'success',
                 message: 'IP addresses added successfully to the group',
@@ -260,6 +273,7 @@ class IpAdressesRepository extends IpAdressesInterface{
             }
 
         }catch(e){
+            transaction.rollback();
             throw new Error(e.message);
         }
     }

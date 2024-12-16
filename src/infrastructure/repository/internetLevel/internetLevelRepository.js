@@ -1,10 +1,13 @@
 const InternetLevelInterface = require("../../../domain/port/internetLevelInterface")
 const { InternetLevel } = require("../../../domain/entity/internetLevel")
-const { getSSHClient } = require("../../services/sshConector/sshClient")
+const { getSSHClient, ensureConnection } = require("../../services/sshConector/sshClient");
+const { sequelize } = require("../../../database/sqlserver");
+
 
 class InternetLevelRepository extends InternetLevelInterface{
 
     async createInternetLevel(name, description, allowed_services, allowed_timeframe, bandwidth_limit, priority){
+        const transaction = await sequelize.transaction();
         try{
             const result = await InternetLevel.create({
                 name: name,
@@ -13,6 +16,8 @@ class InternetLevelRepository extends InternetLevelInterface{
                 allowed_timeframe: allowed_timeframe || "always",
                 bandwidth_limit: bandwidth_limit,
                 priority: priority || 1
+            }, {
+                transaction: transaction
             });
 
             if(!result){
@@ -23,15 +28,14 @@ class InternetLevelRepository extends InternetLevelInterface{
             }
             
             // Implements the create rule in fortigate
-
             const trafficShaperName = `traffic-shaper-${name.replace(/\s+/g, '_').toLowerCase()}`;
             const servicesFormatted = allowed_services
-            ? allowed_services.replace(/,/g, '')
+            ? allowed_services.replace(/,/g, ' ')
             : 'ALL';
 
             const scheduleFormatted = allowed_timeframe === 'always' ? 'always' : allowed_timeframe;
 
-            const ssh = getSSHClient()
+            const ssh = ensureConnection()
 
         // Comando para crear el perfil de tráfico
             const trafficShaperCommand = `
@@ -86,18 +90,21 @@ class InternetLevelRepository extends InternetLevelInterface{
 
             console.log("Fortigate Response: ", sshResponse)
 
+            transaction.commit();
             return {
                 status: 'success',
                 message: 'Internet level created successfully and policy added to FortiGate',
                 data: result
             };
         }catch(err){
+            transaction.rollback();
             console.error(err)
             throw new Error(err.message)
         }
     }
 
     async deleteInternetLevelById(internet_level_id){
+        const transaction = await sequelize.transaction();
         try{
             const intLevel = await InternetLevel.findByPk(internet_level_id)
 
@@ -110,7 +117,7 @@ class InternetLevelRepository extends InternetLevelInterface{
 
             const trafficName = `traffic-shaper-${intLevel.name}`
 
-            const ssh = getSSHClient()
+            const ssh = ensureConnection()
 
             const executeCommand = async (cmd) => {
                 return new Promise((resolve, reject) => {
@@ -148,14 +155,18 @@ class InternetLevelRepository extends InternetLevelInterface{
             console.log("Shaper traffic Deleting response: \n", await executeCommand(comandShaper));
             console.log("Policy Deleting response: \n", await executeCommand(command));
 
-            await InternetLevel.destroy({ where: { internet_level_id: internet_level_id }})
+            await InternetLevel.destroy({ where: { internet_level_id: internet_level_id }},
+                { transaction: transaction }
+            )
 
+            transaction.commit();
             return {
                 status:'success',
                 message: 'Internet level deleted successfully'
             }
 
         }catch (e) {
+            transaction.rollback();
             console.error(e)
             throw new Error(e.message)
         }
