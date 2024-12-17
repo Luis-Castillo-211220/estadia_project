@@ -38,11 +38,16 @@ carpetas:
 - domain: dentro de estas se definen las entidades (con sus atributos + sus relaciones, asi como la creación de sus respectivas tablas en la BD) y los puertos que se encargan de definir los metodos a usar en cada entidad.
 - database: adaptadores que se centran en conectarse a la base de datos.
 - infraestructure: esta se encarga de realizar la conexión con tecnologias externas, dentro de ella encontramos las subcarpertas de:
-  Controladores; se encargan de recibir las solicitudes http asi como generar los objetos de respuesta
-  Repository; implementan los puertos (interfaces) y se encargan de interactuar con la base de datos directamente para las distinas operaciones correspondientes
-  Routes; estos mapean las solcitides HTTP a sus controladores correspondientes, ademas de generar los endpoints correspondientes
-  Dependencies; esta genera las dependencies que la aplicacion necesita, conectado los componentes necesario para el flujo constante de información
+  Controladores; se encargan de recibir las solicitudes http asi como generar los objetos de respuesta.
+  
+  Repository; implementan los puertos (interfaces) y se encargan de interactuar con la base de datos directamente para las distinas operaciones correspondientes.
+  
+  Routes; estos mapean las solcitides HTTP a sus controladores correspondientes, ademas de generar los endpoints correspondientes.
+  
+  Dependencies; esta genera las dependencies que la aplicacion necesita, conectado los componentes necesario para el flujo constante de información.
+  
   Services; aqui se alojan los servicios externos que requiera la app, en este caso conexión externa mediante SSH.
+  
 - Index.js: nucleo de la app, la cual permite su ejecución.
 
 
