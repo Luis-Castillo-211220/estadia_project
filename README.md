@@ -23,4 +23,23 @@ Las variables de entorno requeridas son las siguientes (estas deben de estar en 
 Para ejecutar el proyecto usar el siguiente comando:
 - npm run start:dev
 
+Diseño de base de datos:
+- https://drive.google.com/file/d/1cLZ3RjPa4WdpjiMINCIMbvuFuklAQi-R/view?usp=drive_link
+
+Documentación de los endpoints en Postman:
+- https://documenter.getpostman.com/view/19410025/2sAYJ1jMgU
+
+# Estructura del proyecto.
+Para este proyecto se opto por usar la arquitectura hexagonal, la cual permite escalar el proyecto mejor.
+
+carpetas:
+- src: donde se contiene el proyecto
+- application: dentro de esta se encuentran los casos de uso, los cuales se encargan de conectar la logica de negocio con las solicitudes externas.
+- domain: dentro de estas se definen las entidades (con sus atributos + sus relaciones, asi como la creación de sus respectivas tablas en la BD) y los puertos que se encargan de definir los metodos a usar en cada entidad.
+- database: adaptadores que se centran en conectarse a la base de datos.
+- infraestructure: esta se encarga de realizar la conexión con tecnologias externas, dentro de ella encontramos las subcarpertas de controladores; se encargan de recibir las solicitudes http asi como generar los objetos de respuesta, repository; implementan los puertos (interfaces) y se encargan de interactuar con la base de datos directamente para las distinas operaciones correspondientes, Routes; estos mapean las solcitides HTTP a sus controladores correspondientes, ademas de generar los endpoints correspondientes, Dependencies; esta genera las dependencies que la aplicacion necesita, conectado los componentes necesario para el flujo constante de información, Services; aqui se alojan los servicios externos que requiera la app, en este caso conexión externa mediante SSH.
+- Index.js: nucleo de la app, la cual permite su ejecución.
+
+
+
 Proyecto completo en rama -Development
