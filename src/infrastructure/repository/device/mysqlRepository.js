@@ -210,7 +210,7 @@ class DeviceRepository extends DeviceInterface {
         }
     }
 
-    //PENDIENTE SSH FORTIGATE
+    //NEED TO BE FIXED
     async updateDeviceById(device_id, ip_address, owner_name, ubication, internet_level, groups) {
         try {
             const device = await Device.findOne({ where: { device_id: device_id } })

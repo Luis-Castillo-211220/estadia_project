@@ -159,7 +159,6 @@ class IpGroupRepository extends IPGroupInterface {
                         next
                     end
                 `;
-                console.log("3")
                 console.log(await executeCommand(commandAsociatePolicy))
 
                 const ipGroup = await IpGroup.create({

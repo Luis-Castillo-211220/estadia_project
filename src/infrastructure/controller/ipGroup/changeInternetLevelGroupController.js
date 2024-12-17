@@ -7,9 +7,9 @@ class ChangeInternetLevelGroupController{
 
     async run( req = Request, res = Response){
         try{
-            const { ip_group_ip, new_internet_level_id } = req.body
+            const { ip_group_id, new_internet_level_id } = req.body
 
-            const result = await this.changeInternetLevelGroupUseCase.run(ip_group_ip, new_internet_level_id)
+            const result = await this.changeInternetLevelGroupUseCase.run(ip_group_id, new_internet_level_id)
 
             if(result.status ==='success'){
                 res.status(200).json({
