@@ -12,6 +12,7 @@ class ChangeInternetLevelGroupUseCase{
     async run(ip_group_id, new_internet_level_id){
         try{
             const result = await this.iPGroupInterface.changeInternetLevelGroup(ip_group_id, new_internet_level_id)
+            return result
         }catch(e){
             console.error('Error al cambiar el nivel de Internet en el grupo de IP', e)
             return null
