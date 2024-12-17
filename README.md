@@ -1,3 +1,4 @@
+# Proyecto completo en rama -Development
 # Estadia Project
 Sistema de control de direcciones IP  SSPC
 
@@ -49,7 +50,3 @@ carpetas:
   Services; aqui se alojan los servicios externos que requiera la app, en este caso conexión externa mediante SSH.
   
 - Index.js: nucleo de la app, la cual permite su ejecución.
-
-
-
-# Proyecto completo en rama -Development
